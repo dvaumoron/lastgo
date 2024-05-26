@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"fmt"
@@ -8,19 +8,19 @@ import (
 )
 
 const (
-	GoName = "go"
-
+	checkName            = "last-check.txt"
 	defaultCheckInterval = 24 * time.Hour
 	defaultDownloadURL   = "https://go.dev/dl"
 )
 
-type Config struct {
-	CheckInterval time.Duration
-	DownloadURL   string
-	RootPath      string
+type config struct {
+	checkInterval time.Duration
+	downloadURL   string
+	rootPath      string
+	dateFilePath  string
 }
 
-func InitFromEnv() Config {
+func InitConfigFromEnv() config {
 	checkInterval := defaultCheckInterval
 	if checkIntervalEnv := os.Getenv("LASTGO_CHECK_INTERVAL"); checkIntervalEnv != "" {
 		parsedInterval, err := time.ParseDuration(checkIntervalEnv)
@@ -46,9 +46,10 @@ func InitFromEnv() Config {
 		rootPath = filepath.Join(userPath, ".lastgo")
 	}
 
-	return Config{
-		CheckInterval: checkInterval,
-		DownloadURL:   downloadURL,
-		RootPath:      rootPath,
+	return config{
+		checkInterval: checkInterval,
+		downloadURL:   downloadURL,
+		rootPath:      rootPath,
+		dateFilePath:  filepath.Join(rootPath, checkName),
 	}
 }
