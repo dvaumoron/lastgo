@@ -2,6 +2,8 @@ package goversion
 
 import (
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 var versionRegexp *regexp.Regexp
@@ -33,6 +35,10 @@ func Last(versions []string) string {
 	return lastStr
 }
 
+func Less(v1 string, v2 string) bool {
+	return less(parse(v1), parse(v2))
+}
+
 func less(v1 version, v2 version) bool {
 	if v1.major < v2.major {
 		return true
@@ -52,10 +58,37 @@ func less(v1 version, v2 version) bool {
 func parse(versionStr string) version {
 	if len(versionStr) < 2 || versionStr[0] != 'g' || versionStr[1] != 'o' {
 		return version{}
-
 	}
 
-	// TODO
+	var err error
+	var major, minor, patch int
+	switch splitted := strings.Split(versionStr[2:], "."); len(splitted) {
+	default:
+		fallthrough
+	case 3:
+		patch, err = strconv.Atoi(splitted[2])
+		if err != nil {
+			return version{}
+		}
+		fallthrough
+	case 2:
+		minor, err = strconv.Atoi(splitted[1])
+		if err != nil {
+			return version{}
+		}
+		fallthrough
+	case 1:
+		major, err = strconv.Atoi(splitted[0])
+		if err != nil {
+			return version{}
+		}
+	case 0:
+		return version{}
+	}
 
-	return version{}
+	return version{
+		major: major,
+		minor: minor,
+		patch: patch,
+	}
 }
