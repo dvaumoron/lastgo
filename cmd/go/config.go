@@ -46,6 +46,11 @@ func InitConfigFromEnv() config {
 		rootPath = filepath.Join(userPath, ".lastgo")
 	}
 
+	if err := os.MkdirAll(rootPath, 0755); err != nil {
+		fmt.Println("Failed to create directory :", err)
+		os.Exit(1)
+	}
+
 	return config{
 		checkInterval: checkInterval,
 		downloadURL:   downloadURL,

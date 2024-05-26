@@ -7,11 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/dvaumoron/lastgo/pkg/datefile"
+	"github.com/dvaumoron/lastgo/pkg/goversion"
 )
 
-const (
-	GoName = "go"
-)
+const GoName = "go"
 
 func main() {
 	conf := InitConfigFromEnv()
@@ -28,7 +27,7 @@ func main() {
 				fmt.Println("Fail to remove old version :", err)
 			}
 
-			if err = install(lastVersionDesc); err != nil {
+			if err = install(conf.rootPath, lastVersionDesc); err != nil {
 				fmt.Println("Unable to install", lastVersionDesc.version, ":", err)
 				os.Exit(1)
 			}
@@ -46,14 +45,14 @@ func getInstalledVersion(conf config) string {
 		os.Exit(1)
 	}
 
-	// TODO extract last
+	dirNames := make([]string, 0, len(entries))
 	for _, entry := range entries {
 		if entry.IsDir() {
-			return entry.Name()
+			dirNames = append(dirNames, entry.Name())
 		}
 	}
 
-	return ""
+	return goversion.Last(dirNames)
 }
 
 func runGo(installPath string, installedVersion string) {

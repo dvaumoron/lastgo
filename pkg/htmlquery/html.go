@@ -44,7 +44,7 @@ func extractList[T any](reader io.Reader, selector string, extractor func(*goque
 	}
 
 	var extracteds []T
-	doc.Find(selector).Each(func(i int, s *goquery.Selection) {
+	doc.Find(selector).Each(func(_ int, s *goquery.Selection) {
 		if extracted, ok := extractor(s); ok {
 			extracteds = append(extracteds, extracted)
 		}
