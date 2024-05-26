@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/dvaumoron/lastgo/pkg/datefile"
 	"github.com/dvaumoron/lastgo/pkg/goversion"
 	"github.com/dvaumoron/lastgo/pkg/htmlquery"
 	"golang.org/x/net/html"
@@ -68,6 +69,8 @@ func getLastVersion(conf config) versionDesc {
 		fmt.Println("Unable to retrieve last version :", err)
 		os.Exit(1)
 	}
+
+	datefile.Write(conf.dateFilePath)
 
 	lastVersion := versionDesc{}
 	for _, desc := range versions {

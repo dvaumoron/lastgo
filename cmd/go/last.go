@@ -17,9 +17,7 @@ func main() {
 
 	installedVersion := getInstalledVersion(conf)
 	if datefile.OutsideInterval(conf.dateFilePath, conf.checkInterval) {
-		lastVersionDesc := getLastVersion(conf)
-
-		if installedVersion != lastVersionDesc.version {
+		if lastVersionDesc := getLastVersion(conf); installedVersion != lastVersionDesc.version {
 			fmt.Println("Update to", lastVersionDesc.version)
 
 			err := os.RemoveAll(filepath.Join(conf.rootPath, installedVersion))
