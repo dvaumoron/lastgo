@@ -40,7 +40,8 @@ func InitConfigFromEnv() config {
 	if rootPath == "" {
 		userPath, err := os.UserHomeDir()
 		if err != nil {
-			panic(err)
+			fmt.Println("Failed to access user directory :", err)
+			os.Exit(1)
 		}
 
 		rootPath = filepath.Join(userPath, ".lastgo")

@@ -11,7 +11,6 @@ import (
 	"github.com/dvaumoron/lastgo/pkg/datefile"
 	"github.com/dvaumoron/lastgo/pkg/goversion"
 	"github.com/dvaumoron/lastgo/pkg/htmlquery"
-	"golang.org/x/net/html"
 )
 
 const archiveName = "archive"
@@ -86,8 +85,4 @@ func install(installPath string, desc versionDesc) error {
 	// TODO
 
 	return os.MkdirAll(filepath.Join(installPath, desc.version), 755)
-}
-
-func notEqualInnerText(node *html.Node, value string) bool {
-	return !strings.EqualFold(strings.TrimSpace(node.FirstChild.Data), value)
 }
