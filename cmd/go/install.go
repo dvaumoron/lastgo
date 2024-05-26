@@ -33,7 +33,12 @@ func getLastVersion(conf config) versionDesc {
 	getHref := htmlquery.BasicSelectionExtractor("href")
 	getInnerText := htmlquery.BasicSelectionExtractor("#text")
 
+	found := false
 	versions, err := htmlquery.Request(conf.downloadURL, "div.toggleVisible div.expanded tbody tr", func(s *goquery.Selection) (versionDesc, bool) {
+		if found {
+			return versionDesc{}, false
+		}
+
 		downloadURL := ""
 		s.Find("a.download").EachWithBreak(func(_ int, s *goquery.Selection) bool {
 			downloadURL = getHref(s)
@@ -56,6 +61,7 @@ func getLastVersion(conf config) versionDesc {
 			return false
 		})
 
+		found = true
 		desc := versionDesc{
 			version:        version,
 			downloadURL:    downloadURL,
@@ -72,14 +78,7 @@ func getLastVersion(conf config) versionDesc {
 
 	datefile.Write(conf.dateFilePath)
 
-	lastVersion := versionDesc{}
-	for _, desc := range versions {
-		if goversion.Less(lastVersion.version, desc.version) {
-			lastVersion = desc
-		}
-	}
-
-	return lastVersion
+	return versions[0]
 }
 
 func install(installPath string, desc versionDesc) error {
