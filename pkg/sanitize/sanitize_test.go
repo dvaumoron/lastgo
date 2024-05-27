@@ -22,7 +22,7 @@ func TestArchivePathClean(t *testing.T) {
 func TestArchivePathTainted(t *testing.T) {
 	t.Parallel()
 
-	if _, err := sanitize.ArchivePath("/home/test", "../index.json"); err == nil {
-		t.Error("Should fail on tainted path")
+	if path, err := sanitize.ArchivePath("/home/test", "../index.json"); err == nil {
+		t.Error("Should fail on tainted path, get :", path)
 	}
 }
