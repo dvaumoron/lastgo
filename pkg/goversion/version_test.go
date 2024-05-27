@@ -39,3 +39,27 @@ func TestFindURL(t *testing.T) {
 		t.Error("Unexpected result, get :", version)
 	}
 }
+
+func TestLessTrue(t *testing.T) {
+	t.Parallel()
+
+	if !goversion.Less("go1.21.10", "go1.22.3") {
+		t.Error("Unexpected result, get false")
+	}
+}
+
+func TestLessFalse(t *testing.T) {
+	t.Parallel()
+
+	if goversion.Less("go2.0.0", "go1.22.3") {
+		t.Error("Unexpected result, get true")
+	}
+}
+
+func TestLast(t *testing.T) {
+	t.Parallel()
+
+	if version := goversion.Last([]string{"", "go1.0.1", "go1.22.3", "go1.21.10"}); version != "go1.22.3" {
+		t.Error("Unexpected result, get :", version)
+	}
+}
