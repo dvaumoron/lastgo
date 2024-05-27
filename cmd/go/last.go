@@ -1,3 +1,21 @@
+/*
+ *
+ * Copyright 2024 lastgo authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package main
 
 import (
@@ -18,18 +36,32 @@ func main() {
 	installedVersion := getInstalledVersion(conf)
 	if datefile.OutsideInterval(conf.dateFilePath, conf.checkInterval) {
 		if lastVersionDesc := getLastVersion(conf); installedVersion != lastVersionDesc.version {
-			fmt.Println("Update to", lastVersionDesc.version)
+			fmt.Print("Update to", lastVersionDesc.version)
+			doUpdate := true
+			if conf.askConfirm {
+				fmt.Println(" ? [y/N]:")
 
-			err := os.RemoveAll(filepath.Join(conf.rootPath, installedVersion))
-			if err != nil {
-				fmt.Println("Fail to remove old version :", err)
+				buffer := make([]byte, 1)
+				os.Stdin.Read(buffer)
+				readed := buffer[0]
+
+				doUpdate = readed != 'y' && readed != 'Y'
+			} else {
+				fmt.Println()
 			}
 
-			if err = install(conf.rootPath, lastVersionDesc); err != nil {
-				fmt.Println("Unable to install", lastVersionDesc.version, ":", err)
-				os.Exit(1)
+			if doUpdate {
+				err := os.RemoveAll(filepath.Join(conf.rootPath, installedVersion))
+				if err != nil {
+					fmt.Println("Fail to remove old version :", err)
+				}
+
+				if err = install(conf.rootPath, lastVersionDesc); err != nil {
+					fmt.Println("Unable to install", lastVersionDesc.version, ":", err)
+					os.Exit(1)
+				}
+				installedVersion = lastVersionDesc.version
 			}
-			installedVersion = lastVersionDesc.version
 		}
 	}
 
