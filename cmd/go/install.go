@@ -20,6 +20,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -29,6 +31,7 @@ import (
 	"github.com/dvaumoron/lastgo/pkg/datefile"
 	"github.com/dvaumoron/lastgo/pkg/goversion"
 	"github.com/dvaumoron/lastgo/pkg/htmlquery"
+	"github.com/dvaumoron/lastgo/pkg/uncompress"
 )
 
 const archiveName = "archive"
@@ -98,9 +101,19 @@ func getLastVersion(conf config) versionDesc {
 	return versions[0]
 }
 
-func install(installPath string, desc versionDesc) error {
+func install(rootPath string, desc versionDesc) error {
+	response, err := http.Get(desc.downloadURL)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
 
-	// TODO
+	// TODO check sha256
 
-	return os.MkdirAll(filepath.Join(installPath, desc.version), 755)
+	data, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	return uncompress.ToDir(data, desc.downloadURL, filepath.Join(rootPath, desc.version))
 }
