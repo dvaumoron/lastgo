@@ -31,6 +31,7 @@ import (
 	"github.com/dvaumoron/lastgo/pkg/datefile"
 	"github.com/dvaumoron/lastgo/pkg/goversion"
 	"github.com/dvaumoron/lastgo/pkg/htmlquery"
+	sha256 "github.com/dvaumoron/lastgo/pkg/sha256"
 	"github.com/dvaumoron/lastgo/pkg/uncompress"
 )
 
@@ -108,10 +109,12 @@ func install(rootPath string, desc versionDesc) error {
 	}
 	defer response.Body.Close()
 
-	// TODO check sha256
-
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
+		return err
+	}
+
+	if err = sha256.Check(data, desc.sha256checksum); err != nil {
 		return err
 	}
 
