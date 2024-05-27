@@ -51,7 +51,7 @@ func TestLessTrue(t *testing.T) {
 func TestLessFalse(t *testing.T) {
 	t.Parallel()
 
-	if goversion.Less("go2.0.0", "go1.22.3") {
+	if goversion.Less("go2", "go1.22.3") {
 		t.Error("Unexpected result, get true")
 	}
 }
@@ -59,7 +59,7 @@ func TestLessFalse(t *testing.T) {
 func TestLast(t *testing.T) {
 	t.Parallel()
 
-	if version := goversion.Last([]string{"", "go1.0.1", "go1.22.3", "go1.21.10"}); version != "go1.22.3" {
+	if version := goversion.Last([]string{"go1.0.1", "go1.22.3", "go1.21", ""}); version != "go1.22.3" {
 		t.Error("Unexpected result, get :", version)
 	}
 }
