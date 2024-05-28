@@ -75,7 +75,7 @@ func getLastVersion(conf config) versionDesc {
 		notArchive := true
 		s.Find("td").EachWithBreak(func(i int, s *goquery.Selection) bool {
 			if i == 1 {
-				notArchive = !strings.EqualFold("archive", getInnerText(s))
+				notArchive = !strings.EqualFold(archiveName, getInnerText(s))
 				return false
 			}
 			return true
