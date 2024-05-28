@@ -34,11 +34,14 @@ func main() {
 	conf := InitConfigFromEnv()
 
 	installedVersion := getInstalledVersion(conf)
-	if datefile.OutsideInterval(conf.dateFilePath, conf.checkInterval) {
+	notInstalled := installedVersion == ""
+	if notInstalled || datefile.OutsideInterval(conf.dateFilePath, conf.checkInterval) {
 		if lastVersionDesc := getLastVersion(conf); installedVersion != lastVersionDesc.version {
 			fmt.Print("Update to ", lastVersionDesc.version)
 			doUpdate := true
-			if conf.askConfirm {
+			if notInstalled || conf.noConfirm {
+				fmt.Println()
+			} else {
 				fmt.Print(" ? [y/N]:")
 
 				buffer := make([]byte, 1)
@@ -46,21 +49,20 @@ func main() {
 				readed := buffer[0]
 
 				doUpdate = readed == 'y' || readed == 'Y'
-			} else {
-				fmt.Println()
 			}
 
 			if doUpdate {
-				if installedVersion != "" {
+				if err := install(conf.rootPath, lastVersionDesc); err != nil {
+					fmt.Println("Unable to install", lastVersionDesc.version, ":", err)
+					os.Exit(1)
+				}
+
+				if !notInstalled {
 					if err := os.RemoveAll(filepath.Join(conf.rootPath, installedVersion)); err != nil {
 						fmt.Println("Fail to remove old version :", err)
 					}
 				}
 
-				if err := install(conf.rootPath, lastVersionDesc); err != nil {
-					fmt.Println("Unable to install", lastVersionDesc.version, ":", err)
-					os.Exit(1)
-				}
 				installedVersion = lastVersionDesc.version
 			}
 		}

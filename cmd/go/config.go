@@ -37,7 +37,7 @@ type config struct {
 	downloadURL   string
 	rootPath      string
 	dateFilePath  string
-	askConfirm    bool
+	noConfirm     bool
 }
 
 func InitConfigFromEnv() config {
@@ -77,6 +77,6 @@ func InitConfigFromEnv() config {
 		downloadURL:   downloadURL,
 		rootPath:      rootPath,
 		dateFilePath:  filepath.Join(rootPath, checkName),
-		askConfirm:    strings.TrimSpace(os.Getenv("LASTGO_ASK")) != "",
+		noConfirm:     strings.TrimSpace(os.Getenv("LASTGO_ASK")) == "",
 	}
 }
