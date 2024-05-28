@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -60,18 +61,18 @@ func getLastVersion(conf config) versionDesc {
 			return versionDesc{}, false
 		}
 
-		downloadURL := ""
+		href := ""
 		s.Find("a.download").EachWithBreak(func(_ int, s *goquery.Selection) bool {
-			downloadURL = getHref(s)
+			href = getHref(s)
 			return false
 		})
 
-		version := goversion.Find(downloadURL)
+		version := goversion.Find(href)
 		if version == "" {
 			return versionDesc{}, false
 		}
 
-		splitted := strings.Split(downloadURL, version)
+		splitted := strings.Split(href, version)
 		if len(splitted) < 2 || !strings.HasPrefix(splitted[1], os_arch) {
 			return versionDesc{}, false
 		}
@@ -85,7 +86,7 @@ func getLastVersion(conf config) versionDesc {
 		found = true
 		desc := versionDesc{
 			version:        version,
-			downloadURL:    downloadURL,
+			downloadURL:    absoluteURL(conf.downloadURL, href),
 			sha256checksum: sha256checksum,
 		}
 
@@ -100,6 +101,16 @@ func getLastVersion(conf config) versionDesc {
 	datefile.Write(conf.dateFilePath)
 
 	return versions[0]
+}
+
+func absoluteURL(downloadURL string, href string) string {
+	if strings.Contains(href, "://") {
+		return href
+	}
+
+	baseURL, _ := url.Parse(downloadURL)
+	baseURL.Path = ""
+	return baseURL.JoinPath(href).String()
 }
 
 func install(rootPath string, desc versionDesc) error {
