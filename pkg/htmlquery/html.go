@@ -38,14 +38,14 @@ func BasicSelectionExtractor(part string) func(*goquery.Selection) string {
 	}
 }
 
-func NonEmptyFilter(basicExtractor func(*goquery.Selection) string) func(*goquery.Selection) (string, bool) {
-	return func(s *goquery.Selection) (string, bool) {
+func NonEmptyFilter(basicExtractor func(*goquery.Selection) string) func(*goquery.Selection) (string, bool, bool) {
+	return func(s *goquery.Selection) (string, bool, bool) {
 		str := basicExtractor(s)
-		return str, str != ""
+		return str, str != "", true
 	}
 }
 
-func Request[T any](callURL string, selector string, extractor func(*goquery.Selection) (T, bool)) ([]T, error) {
+func Request[T any](callURL string, selector string, extractor func(*goquery.Selection) (T, bool, bool)) ([]T, error) {
 	response, err := http.Get(callURL)
 	if err != nil {
 		return nil, err
@@ -55,17 +55,19 @@ func Request[T any](callURL string, selector string, extractor func(*goquery.Sel
 	return extractList(response.Body, selector, extractor)
 }
 
-func extractList[T any](reader io.Reader, selector string, extractor func(*goquery.Selection) (T, bool)) ([]T, error) {
+func extractList[T any](reader io.Reader, selector string, extractor func(*goquery.Selection) (T, bool, bool)) ([]T, error) {
 	doc, err := goquery.NewDocumentFromReader(reader)
 	if err != nil {
 		return nil, err
 	}
 
 	var extracteds []T
-	doc.Find(selector).Each(func(_ int, s *goquery.Selection) {
-		if extracted, ok := extractor(s); ok {
+	doc.Find(selector).EachWithBreak(func(_ int, s *goquery.Selection) bool {
+		extracted, ok, next := extractor(s)
+		if ok {
 			extracteds = append(extracteds, extracted)
 		}
+		return next
 	})
 
 	return extracteds, nil

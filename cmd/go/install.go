@@ -55,12 +55,7 @@ func getLastVersion(conf config) versionDesc {
 	getHref := htmlquery.BasicSelectionExtractor("href")
 	getInnerText := htmlquery.BasicSelectionExtractor("#text")
 
-	found := false
-	versions, err := htmlquery.Request(conf.downloadURL, "div.toggleVisible div.expanded tbody tr", func(s *goquery.Selection) (versionDesc, bool) {
-		if found {
-			return versionDesc{}, false
-		}
-
+	versions, err := htmlquery.Request(conf.downloadURL, "div.toggleVisible div.expanded tbody tr", func(s *goquery.Selection) (versionDesc, bool, bool) {
 		href := ""
 		s.Find("a.download").EachWithBreak(func(_ int, s *goquery.Selection) bool {
 			href = getHref(s)
@@ -69,12 +64,25 @@ func getLastVersion(conf config) versionDesc {
 
 		version := goversion.Find(href)
 		if version == "" {
-			return versionDesc{}, false
+			return versionDesc{}, false, true
 		}
 
 		splitted := strings.Split(href, version)
 		if len(splitted) < 2 || !strings.HasPrefix(splitted[1], os_arch) {
-			return versionDesc{}, false
+			return versionDesc{}, false, true
+		}
+
+		notArchive := true
+		s.Find("td").EachWithBreak(func(i int, s *goquery.Selection) bool {
+			if i == 1 {
+				notArchive = !strings.EqualFold("archive", getInnerText(s))
+				return false
+			}
+			return true
+		})
+
+		if notArchive {
+			return versionDesc{}, false, true
 		}
 
 		sha256checksum := ""
@@ -83,14 +91,13 @@ func getLastVersion(conf config) versionDesc {
 			return false
 		})
 
-		found = true
 		desc := versionDesc{
 			version:        version,
 			downloadURL:    absoluteURL(conf.downloadURL, href),
 			sha256checksum: sha256checksum,
 		}
 
-		return desc, true
+		return desc, true, false
 	})
 
 	if err != nil || len(versions) == 0 {
@@ -109,7 +116,9 @@ func absoluteURL(downloadURL string, href string) string {
 	}
 
 	baseURL, _ := url.Parse(downloadURL)
-	baseURL.Path = ""
+	if len(href) != 0 && href[0] == '/' {
+		baseURL.Path = ""
+	}
 	return baseURL.JoinPath(href).String()
 }
 
