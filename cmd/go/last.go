@@ -23,17 +23,22 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/dvaumoron/lastgo/pkg/datefile"
 	"github.com/dvaumoron/lastgo/pkg/goversion"
 )
 
-const binGo = "go/bin/go"
+const (
+	binGo      = "go/bin/go"
+	goName     = "go"
+	versionCmd = "version"
+)
 
 func main() {
 	conf := InitConfigFromEnv()
 
-	installedVersion := getInstalledVersion(conf)
+	installedVersion, versionMessage := getInstalledVersion(conf)
 	notInstalled := installedVersion == ""
 	if notInstalled || datefile.OutsideInterval(conf.dateFilePath, conf.checkInterval) {
 		if lastVersionDesc := getLastVersion(conf); installedVersion != lastVersionDesc.version {
@@ -52,48 +57,56 @@ func main() {
 			}
 
 			if doUpdate {
-				if err := install(conf.rootPath, lastVersionDesc); err != nil {
-					fmt.Println("Unable to install", lastVersionDesc.version, ":", err)
-					os.Exit(1)
-				}
-
-				if !notInstalled {
-					if err := os.RemoveAll(filepath.Join(conf.rootPath, installedVersion)); err != nil {
-						fmt.Println("Fail to remove old version :", err)
+				versionMessage = ""
+				if notInstalled {
+					if err := install(conf.rootPath, lastVersionDesc); err != nil {
+						fmt.Println("Unable to install", lastVersionDesc.version, ":", err)
+						os.Exit(1)
 					}
-				}
+				} else {
+					var builder strings.Builder
+					builder.WriteString("GOTOOLCHAIN=")
+					builder.WriteString(lastVersionDesc.version)
+					builder.WriteString("+auto")
 
-				installedVersion = lastVersionDesc.version
+					runGo(conf.rootPath, []string{"env", "-w", builder.String()}, stdoutSetter)
+				}
 			}
 		}
 	}
 
-	runGo(conf.rootPath, installedVersion)
+	cmdArgs := os.Args[1:]
+	if versionMessage != "" && len(cmdArgs) > 0 && cmdArgs[0] == versionCmd {
+		fmt.Println(versionMessage)
+	}
+
+	runGo(conf.rootPath, cmdArgs, stdoutSetter)
 }
 
-func getInstalledVersion(conf config) string {
-	entries, err := os.ReadDir(conf.rootPath)
-	if err != nil {
+func getInstalledVersion(conf config) (string, string) {
+	if _, err := os.Stat(filepath.Join(conf.rootPath, goName)); err != nil {
+		if os.IsNotExist(err) {
+			return "", ""
+		}
+
 		fmt.Println("Unable to read installation directory :", err)
 		os.Exit(1)
 	}
 
-	dirNames := make([]string, 0, len(entries))
-	for _, entry := range entries {
-		if entry.IsDir() {
-			dirNames = append(dirNames, entry.Name())
-		}
-	}
+	var outBuilder strings.Builder
+	runGo(conf.rootPath, []string{versionCmd}, func(cmd *exec.Cmd) {
+		cmd.Stdout = &outBuilder
+	})
+	versionMessage := outBuilder.String()
 
-	return goversion.Last(dirNames)
+	return goversion.Find(versionMessage), versionMessage
 }
 
-func runGo(installPath string, installedVersion string) {
-	cmdArgs := os.Args[1:]
-	cmd := exec.Command(filepath.Join(installPath, installedVersion, binGo), cmdArgs...)
+func runGo(installPath string, cmdArgs []string, outSetter func(*exec.Cmd)) {
+	cmd := exec.Command(filepath.Join(installPath, binGo), cmdArgs...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
+	outSetter(cmd)
 
 	if err := cmd.Run(); err != nil {
 		if exitError, ok := err.(*exec.ExitError); ok {
@@ -101,4 +114,8 @@ func runGo(installPath string, installedVersion string) {
 		}
 		fmt.Println("Failure during go call :", err)
 	}
+}
+
+func stdoutSetter(cmd *exec.Cmd) {
+	cmd.Stdout = os.Stdout
 }

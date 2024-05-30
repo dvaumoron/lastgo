@@ -24,7 +24,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -138,5 +137,5 @@ func install(rootPath string, desc versionDesc) error {
 		return err
 	}
 
-	return uncompress.ToDir(data, desc.downloadURL, filepath.Join(rootPath, desc.version))
+	return uncompress.ToDir(data, desc.downloadURL, rootPath)
 }
