@@ -77,7 +77,8 @@ func main() {
 
 	cmdArgs := os.Args[1:]
 	if versionMessage != "" && len(cmdArgs) > 0 && cmdArgs[0] == versionCmd {
-		fmt.Println(versionMessage)
+		fmt.Print(versionMessage)
+		return
 	}
 
 	runGo(conf.rootPath, cmdArgs, stdoutSetter)
