@@ -31,7 +31,7 @@ Minimum interval waited between check of last version on `LASTGO_DOWNLOAD_URL`.
 
 String (Default: https://go.dev/dl)
 
-URL to download Go binary (only used to install at first launch, update rely on [GOTOOLCHAIN](https://go.dev/doc/toolchain) mecanism).
+URL used to check last go version (also download and install Go binary at first launch, however update rely on [GOTOOLCHAIN](https://go.dev/doc/toolchain) mecanism).
 
 ### LASTGO_ROOT
 
