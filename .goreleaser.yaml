@@ -54,7 +54,7 @@ nfpms:
     section: default
     contents:
       - src: ./LICENSE
-        dst: /usr/share/doc/gosince/copyright
+        dst: /usr/share/doc/lastgo/copyright
         file_info:
           mode: 0444
     rpm:
