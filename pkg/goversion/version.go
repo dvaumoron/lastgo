@@ -33,7 +33,7 @@ type version struct {
 }
 
 func init() {
-	versionRegexp = regexp.MustCompilePOSIX("go[0-9]+(\\.[0-9]+)*")
+	versionRegexp = regexp.MustCompilePOSIX("go[0-9]+\\.[0-9]+(\\.[0-9]+)?")
 }
 
 // return a go version (like "go1.22.3").

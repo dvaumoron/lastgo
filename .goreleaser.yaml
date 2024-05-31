@@ -1,0 +1,75 @@
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 1
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+
+builds:
+  - main: ./cmd/go
+    binary: go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+      - freebsd
+      - openbsd
+      - solaris
+
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+
+release:
+  name_template: "Release {{.Tag}}"
+
+changelog:
+  use: github-native
+
+archives:
+  - format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{- .Os }}_{{- .Arch }}"
+
+nfpms:
+  - file_name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}'
+    maintainer: 'https://github.com/dvaumoron'
+    homepage: https://github.com/dvaumoron/lastgo
+    description: >-
+      lastgo provides an alternative go command which is a proxy keeping up to date the Go toolchain (see https://go.dev).
+    license: "Apache-2.0"
+    formats:
+      - deb
+      - rpm
+      - apk
+    bindir: /usr/bin
+    section: default
+    contents:
+      - src: ./LICENSE
+        dst: /usr/share/doc/gosince/copyright
+        file_info:
+          mode: 0444
+    rpm:
+      signature:
+        key_file: "{{ if index .Env \"GPG_KEY_FILE\"  }}{{.Env.GPG_KEY_FILE}}{{ end }}"
+    deb:
+      signature:
+        key_file: "{{ if index .Env \"GPG_KEY_FILE\"  }}{{.Env.GPG_KEY_FILE}}{{ end }}"
+
+brews:
+  - repository:
+      owner: dvaumoron
+      name: homebrew-tap
+    directory: Formula
+    homepage: https://github.com/dvaumoron/lastgo
+    description: provides an alternative go command which is a proxy keeping up to date the Go toolchain (see https://go.dev).
+    license: "Apache-2.0"
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
