@@ -42,12 +42,13 @@ func main() {
 	notInstalled := installedVersion == ""
 	if notInstalled || datefile.OutsideInterval(conf.dateFilePath, conf.checkInterval) {
 		if lastVersionDesc := getLastVersion(conf); installedVersion != lastVersionDesc.version {
-			fmt.Print("Update to ", lastVersionDesc.version)
 			doUpdate := true
-			if notInstalled || conf.noConfirm {
-				fmt.Println()
+			if notInstalled {
+				fmt.Println("Install", lastVersionDesc.version)
+			} else if conf.noConfirm {
+				fmt.Println("Update to", lastVersionDesc.version)
 			} else {
-				fmt.Print(" ? [y/N]:")
+				fmt.Print("Update to ", lastVersionDesc.version, " ? [y/N]:")
 
 				buffer := make([]byte, 1)
 				os.Stdin.Read(buffer)
