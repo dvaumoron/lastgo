@@ -23,6 +23,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/dvaumoron/lastgo/pkg/sanitize"
 )
@@ -50,9 +51,8 @@ func copyZipFileToDir(zipFile *zip.File, dirPath string) error {
 		return err
 	}
 
-	if destPath[len(destPath)-1] == '/' {
-		// trailing slash indicates a directory
-		return os.MkdirAll(destPath, 0755)
+	if err = os.MkdirAll(destPath[:strings.LastIndex(destPath, string(os.PathSeparator))], 0755); err != nil {
+		return err
 	}
 
 	reader, err := zipFile.Open()
