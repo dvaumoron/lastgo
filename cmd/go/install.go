@@ -23,7 +23,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"runtime"
 	"strings"
 
@@ -101,7 +100,7 @@ func getLastVersion(conf config) versionDesc {
 
 	if err != nil || len(versions) == 0 {
 		fmt.Println("Unable to retrieve last version :", err)
-		os.Exit(1)
+		return versionDesc{}
 	}
 
 	datefile.Write(conf.dateFilePath)

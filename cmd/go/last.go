@@ -41,7 +41,13 @@ func main() {
 	installedVersion, versionMessage := getInstalledVersion(conf)
 	notInstalled := installedVersion == ""
 	if notInstalled || datefile.OutsideInterval(conf.dateFilePath, conf.checkInterval) {
-		if lastVersionDesc := getLastVersion(conf); installedVersion != lastVersionDesc.version {
+		if lastVersionDesc := getLastVersion(conf); lastVersionDesc.version == "" {
+			if notInstalled {
+				fmt.Println("Can not fallback, Go is not installed yet")
+				os.Exit(1)
+			}
+			fmt.Println("Fallback to", installedVersion, "already installed")
+		} else if installedVersion != lastVersionDesc.version {
 			doUpdate := true
 			if notInstalled {
 				fmt.Println("Install", lastVersionDesc.version)
